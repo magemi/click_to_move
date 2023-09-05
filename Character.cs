@@ -1,12 +1,16 @@
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 public partial class Character : Node2D
 {
 	[Export]
 	public float Speed { get; set; } = 200.0f;
 
+	[Signal]
+	public delegate void TurnEndedEventHandler();
+	 
 	private const float Mass = 10;
 	private const float DistanceToArrival = 10;
 	
@@ -15,7 +19,8 @@ public partial class Character : Node2D
 	private Vector2 _nextPoint = Vector2.Zero;
 	private List<Vector2> _path;
 	private PathFinder _pathFinder = new PathFinder();
-
+	private bool _isActive = false;
+	
 	public enum CharacterState { Idle, Searching, Moving };
 	public CharacterState State { get; set; } = CharacterState.Idle;
 
@@ -23,7 +28,7 @@ public partial class Character : Node2D
 	public override void _Ready()
 	{
 		_target = Position;
-		_pathFinder = GetNode<PathFinder>("../TileMap");
+		_pathFinder = GetTree().Root.GetChild(0).GetNode<PathFinder>("TileMap");
 		ChangeState(CharacterState.Idle);
 	}
 	
@@ -40,6 +45,7 @@ public partial class Character : Node2D
 			if (!_path.Any())
 			{
 				ChangeState(CharacterState.Idle);
+				EmitSignal(SignalName.TurnEnded);
 				return;
 			}
 			_nextPoint = _path[0];
@@ -48,6 +54,9 @@ public partial class Character : Node2D
 	
 	public override void _UnhandledInput(InputEvent @event)
 	{
+		if (!_isActive)
+			return;
+			
 		if (@event is InputEventMouseMotion mouseMotionEvent)
 		{
 			_target = GetGlobalMousePosition();
@@ -62,7 +71,7 @@ public partial class Character : Node2D
 			if (mouseButtonEvent.ButtonIndex == MouseButton.Left)
 			{
 				_target = GetGlobalMousePosition();
-				var label = GetParent().GetNode<Label>("Label");
+				var label = GetTree().Root.GetChild(0).GetNode<Label>("Label");
 				label.Text = _target.ToString();
 				GD.Print(_target.ToString());
 				if (_pathFinder.IsPointWalkable(_target))
@@ -98,5 +107,17 @@ public partial class Character : Node2D
 		Position += new Vector2(_velocity.X * (float)GetProcessDeltaTime(), _velocity.Y * (float)GetProcessDeltaTime());
 		Rotation = _velocity.Angle();
 		return Position.DistanceTo(position) < DistanceToArrival;
+	}
+
+	public Task PlayTurn()
+	{
+		return Task.CompletedTask;
+	}
+	
+	public void IsActiveCharacter(Node2D activeCharacter)
+	{
+		_isActive = false;
+		if (activeCharacter.Name == Name)
+			_isActive = true;
 	}
 }

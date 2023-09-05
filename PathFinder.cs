@@ -32,22 +32,22 @@ public partial class PathFinder : TileMap
 		}
 	}
 
-    public override void _Draw()
-    {
-        if (_path.IsEmpty())
-            return;
+	public override void _Draw()
+	{
+		if (_path.IsEmpty())
+			return;
 
-        var lastPoint = _path[0];
-        foreach (var i in GD.Range(0, _path.Length))
-        {
-            var currentPoint = _path[i];
-            DrawLine(lastPoint, currentPoint, Colors.White, 3.0f, true);
-            DrawCircle(currentPoint, 6.0f, Colors.White);
-            lastPoint = currentPoint;
-        }
-    }
-    
-    public Vector2 RoundLocalPosition(Vector2 position)
+		var lastPoint = _path[0];
+		foreach (var i in GD.Range(0, _path.Length))
+		{
+			var currentPoint = _path[i];
+			DrawLine(lastPoint, currentPoint, Colors.White, 3.0f, true);
+			DrawCircle(currentPoint, 6.0f, Colors.White);
+			lastPoint = currentPoint;
+		}
+	}
+	
+	public Vector2 RoundLocalPosition(Vector2 position)
 	{
 		return MapToLocal(LocalToMap(position));
 	}
@@ -69,9 +69,9 @@ public partial class PathFinder : TileMap
 			Array.Clear(_path);
 			EraseCell(0, _startPoint);
 			EraseCell(0, _endPoint);
-        }
-        QueueRedraw();
-    }
+		}
+		QueueRedraw();
+	}
 
 	public Vector2[] FindPath(Vector2I startPoint, Vector2I endPoint)
 	{
